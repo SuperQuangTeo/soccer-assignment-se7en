@@ -6,12 +6,13 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private Animator animator;
-    private Rigidbody playerRigid;
+    [SerializeField] private BoxCollider fieldBounds;
+    private Rigidbody playerRb;
     private Vector3 movement;
 
     private void Awake()
     {
-        playerRigid = GetComponent<Rigidbody>();
+        playerRb = GetComponent<Rigidbody>();
     }
 
     private void Update()
@@ -32,8 +33,13 @@ public class PlayerController : MonoBehaviour
 
     private void Move()
     {
-        Vector3 newPosition = playerRigid.position + movement * moveSpeed * Time.fixedDeltaTime;
-        playerRigid.MovePosition(newPosition);
+        Vector3 newPosition = playerRb.position + movement * moveSpeed * Time.fixedDeltaTime;
+
+        Bounds bounds = fieldBounds.bounds;
+        newPosition.x = Mathf.Clamp(newPosition.x, bounds.min.x, bounds.max.x);
+        newPosition.z = Mathf.Clamp(newPosition.z, bounds.min.z, bounds.max.z);
+
+        playerRb.MovePosition(newPosition);
     }
 
     private void Rotate()
