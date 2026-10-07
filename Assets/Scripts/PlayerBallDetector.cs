@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,10 +8,11 @@ public class PlayerBallDetector : MonoBehaviour
 {
     [SerializeField] private Button kickButton;
     [SerializeField] private Button autoKickButton;
-    [SerializeField] private float range = 2f;
+    [SerializeField] private float range = 1.5f;
 
     [SerializeField] private Goal[] goals;
     [SerializeField] private Transform[] balls;
+    [SerializeField] private CameraController cameraController;
 
     private void Awake()
     {
@@ -21,6 +23,35 @@ public class PlayerBallDetector : MonoBehaviour
     private void Update()
     {
         CheckBallInRange();
+    }
+
+    private void OnEnable()
+    {
+        BallController.OnReachedGoal += FollowCameraPlayer;
+    }
+
+    private void OnDisable()
+    {
+        BallController.OnReachedGoal -= FollowCameraPlayer;
+
+    }
+
+    private void FollowCameraPlayer()
+    {
+        StartCoroutine(FollowCameraPlayerCoroutine());
+    }
+
+    private IEnumerator FollowCameraPlayerCoroutine()
+    {
+        yield return new WaitForSeconds(2);
+        cameraController.FollowObject(gameObject.transform);
+        SetButtonStatus(true);
+    }
+
+    private void SetButtonStatus(bool isActivate)
+    {
+        kickButton.interactable = isActivate;
+        autoKickButton.interactable = isActivate;
     }
 
     private void CheckBallInRange()
@@ -43,6 +74,8 @@ public class PlayerBallDetector : MonoBehaviour
 
     private void KickBall()
     {
+        SetButtonStatus(false);
+
         Transform nearestBall = GetNearestBall();
         if (nearestBall == null) return;
 
@@ -54,11 +87,15 @@ public class PlayerBallDetector : MonoBehaviour
 
         Goal NearestGoal = GetNearestGoal(nearestBall);
 
+        cameraController.FollowObject(nearestBall);
+
         ballController.KickBallToGoal(NearestGoal.transform);
     }
 
     private void AutoKickBall()
     {
+        SetButtonStatus(false);
+
         Transform farthestBall = GetFarthestBall();
         if (farthestBall == null) return;
 
@@ -69,7 +106,8 @@ public class PlayerBallDetector : MonoBehaviour
         if (ballController.Iskicking) return;
 
         Goal nearestGoal = GetNearestGoal(farthestBall);
-        Debug.Log(nearestGoal);
+
+        cameraController.FollowObject(farthestBall);
 
         ballController.KickBallToGoal(nearestGoal.transform);
     }
