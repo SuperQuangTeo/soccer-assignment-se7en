@@ -60,8 +60,17 @@ public class PlayerBallDetector : MonoBehaviour
 
         foreach (Transform ball in balls)
         {
-            float distance = Vector3.Distance(transform.position, ball.position);
+            if (ball == null) continue;
 
+            BallController ballController = ball.GetComponent<BallController>();
+
+            if (ballController == null) continue;
+
+            if (ballController.Iskicking) continue;
+
+            if (ballController.HasReachedGoal) continue;
+            float distance = Vector3.Distance(transform.position, ball.position);
+            
             if (distance <= range)
             {
                 isInRange = true;
@@ -173,7 +182,7 @@ public class PlayerBallDetector : MonoBehaviour
 
             if (ballController.HasReachedGoal) continue;
             float distance = Vector3.Distance(transform.position, ball.transform.position);
-            if (distance < nearestDistance)
+            if (distance < nearestDistance && distance <= range)
             {
                 nearestDistance = distance;
                 nearBall = ball;
